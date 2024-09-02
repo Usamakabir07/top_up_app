@@ -4,4 +4,6 @@ class PrefsKeys {
   static const String beneficiaries = "beneficiaries";
   static const String balanceUsed = "balance_used";
   static const String isVerified = "is_verified";
+  static const String status = "status";
+  static const String message = "message";
 }

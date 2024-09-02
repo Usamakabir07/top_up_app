@@ -1,12 +1,18 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:top_up_app/infrastructure/auth/auth_repository.dart';
+import 'package:top_up_app/infrastructure/beneficiary/api/add_beneficiary_api.dart';
 import 'package:top_up_app/infrastructure/beneficiary/beneficiary_repository.dart';
+import 'package:top_up_app/infrastructure/home/api/get_balance_api.dart';
+import 'package:top_up_app/infrastructure/topUp/api/top_up_api.dart';
+import 'package:top_up_app/infrastructure/topUp/top_up_repository.dart';
 import 'package:top_up_app/viewModels/auth_view_model.dart';
 import 'package:top_up_app/viewModels/beneficiary_view_model.dart';
 import 'package:top_up_app/viewModels/dashboard_view_model.dart';
 import 'package:top_up_app/viewModels/top_up_view_model.dart';
 import 'infrastructure/apiUtil/urls.dart';
+import 'infrastructure/auth/api/login_api.dart';
 import 'infrastructure/catalog_facade_service.dart';
 import 'infrastructure/home/home_repository.dart';
 import 'package:get_storage/get_storage.dart';
@@ -31,7 +37,20 @@ Future<void> init() async {
   registerApiCalls();
 }
 
-registerApiCalls() {}
+registerApiCalls() {
+  serviceLocator.registerLazySingleton(() => LoginApi(
+        dio: serviceLocator(),
+      ));
+  serviceLocator.registerLazySingleton(() => GetBalanceApi(
+        dio: serviceLocator(),
+      ));
+  serviceLocator.registerLazySingleton(() => AddBeneficiaryApi(
+        dio: serviceLocator(),
+      ));
+  serviceLocator.registerLazySingleton(() => TopUpApi(
+        dio: serviceLocator(),
+      ));
+}
 
 registerViewModel() {
   serviceLocator.registerLazySingleton(() => AuthViewModel(
@@ -53,13 +72,26 @@ registerViewModel() {
 }
 
 registerRepository() {
-  serviceLocator.registerLazySingleton(() => DashboardRepository());
-  serviceLocator.registerLazySingleton(() => BeneficiaryRepository());
+  serviceLocator.registerLazySingleton(() => AuthRepository(
+        loginApi: serviceLocator(),
+      ));
+  serviceLocator.registerLazySingleton(() => HomeRepository(
+        getBalanceApi: serviceLocator(),
+      ));
+  serviceLocator.registerLazySingleton(() => BeneficiaryRepository(
+        addBeneficiaryApi: serviceLocator(),
+      ));
+  serviceLocator.registerLazySingleton(() => TopUpRepository(
+        topUpApi: serviceLocator(),
+      ));
 }
 
 registerCatalog() {
   serviceLocator.registerLazySingleton(() => CatalogFacadeService(
         homeRepository: serviceLocator(),
+        authRepository: serviceLocator(),
+        beneficiaryRepository: serviceLocator(),
+        topUpRepository: serviceLocator(),
       ));
 }
 

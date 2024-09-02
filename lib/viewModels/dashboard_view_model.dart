@@ -64,6 +64,10 @@ class DashboardViewModel extends ChangeNotifier {
   }
 
   void getTheBalance() {
+
+    ///Here is the code for HTTP call
+    // catalogFacadeService.getBalance();
+
     if (getStorage.hasData(PrefsKeys.accountBalance)) {
       _accountBalance = getStorage.read(PrefsKeys.accountBalance);
       notifyListeners();

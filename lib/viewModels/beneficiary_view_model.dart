@@ -63,6 +63,9 @@ class BeneficiaryViewModel extends ChangeNotifier {
         phone: countryCode + phoneNumber,
         balanceUsed: 0.0,
       );
+
+      ///Here is the code for HTTP call
+      // catalogFacadeService.addBeneficiary(nickName: beneficiaryName, phoneNumber: phoneNumber);
       await Future.delayed(const Duration(seconds: 2));
       if (_beneficiariesList
           .any(((element) => element.phone != beneficiary.phone))) {

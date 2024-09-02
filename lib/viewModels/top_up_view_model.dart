@@ -26,6 +26,8 @@ class TopUpViewModel extends ChangeNotifier {
   List<double> get topUpOptions => _topUpOptions;
 
   void selectTheTopUpOption(int index) {
+    ///Here is the code for HTTP call
+    // catalogFacadeService.topUp(phoneNumber: "phoneNumber");
     if (scrollController.hasClients) {
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,

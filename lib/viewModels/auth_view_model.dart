@@ -12,6 +12,8 @@ class AuthViewModel extends ChangeNotifier {
   final GetStorage getStorage;
 
   void navigateToTheDashboard(bool isNavigated) {
+    ///Here is the code for HTTP call
+    // catalogFacadeService.login(email: "email", password: "password");
     getStorage.write(PrefsKeys.isVerified, isNavigated);
     notifyListeners();
     Navigator.pushNamedAndRemoveUntil(

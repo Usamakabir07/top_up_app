@@ -1,3 +1,8 @@
+import 'package:top_up_app/infrastructure/auth/auth_repository.dart';
+import 'package:top_up_app/infrastructure/beneficiary/beneficiary_repository.dart';
+import 'package:top_up_app/infrastructure/topUp/top_up_repository.dart';
+
+import 'apiUtil/response_wrappers.dart';
 import 'home/home_repository.dart';
 
 // This class is the medium between repositories
@@ -8,8 +13,46 @@ import 'home/home_repository.dart';
 
 class CatalogFacadeService {
   const CatalogFacadeService({
+    required this.authRepository,
     required this.homeRepository,
+    required this.beneficiaryRepository,
+    required this.topUpRepository,
   });
 
-  final DashboardRepository homeRepository;
+  final AuthRepository authRepository;
+  final HomeRepository homeRepository;
+  final BeneficiaryRepository beneficiaryRepository;
+  final TopUpRepository topUpRepository;
+
+  Future<ResponseWrapper<dynamic>> login({
+    required String email,
+    required String password,
+  }) async {
+    return await authRepository.login(
+      email: email,
+      password: password,
+    );
+  }
+
+  Future<ResponseWrapper<dynamic>> getBalance() async {
+    return await homeRepository.getBalance();
+  }
+
+  Future<ResponseWrapper<dynamic>> addBeneficiary({
+    required String nickName,
+    required String phoneNumber,
+  }) async {
+    return await beneficiaryRepository.addBeneficiary(
+      nickName: nickName,
+      phoneNumber: phoneNumber,
+    );
+  }
+
+  Future<ResponseWrapper<dynamic>> topUp({
+    required String phoneNumber,
+  }) async {
+    return await topUpRepository.topUp(
+      phoneNumber: phoneNumber,
+    );
+  }
 }
