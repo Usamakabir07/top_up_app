@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:top_up_app/infrastructure/home/api/get_balance_api.dart';
 
 import '../../common/prefs_keys.dart';
