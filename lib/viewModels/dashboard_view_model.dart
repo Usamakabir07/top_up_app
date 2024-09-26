@@ -1,13 +1,16 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:top_up_app/common/prefs_keys.dart';
 import 'package:top_up_app/infrastructure/beneficiary/model/beneficiary_model.dart';
+import 'package:top_up_app/injection_container.dart';
 import 'package:top_up_app/utils/global_function.dart';
 import 'package:top_up_app/utils/navigation_service.dart';
 import 'package:top_up_app/view/screens/beneficiaries/beneficiaries_screen.dart';
 import 'package:top_up_app/view/screens/dashboard/dashboard_screen.dart';
 import 'package:top_up_app/view/screens/home/home_screen.dart';
+import 'package:top_up_app/viewModels/auth_view_model.dart';
 import 'package:top_up_app/viewModels/beneficiary_view_model.dart';
 
 import '../infrastructure/catalog_facade_service.dart';
@@ -46,7 +49,16 @@ class DashboardViewModel extends ChangeNotifier {
   final List<Widget> _dashboardWidgets = [
     const HomeScreen(),
     const BeneficiariesScreen(),
-    const Center(child: Text('Profile will appear here')),
+    Center(
+      child: ElevatedButton(
+        onPressed: () {
+          serviceLocator<AuthViewModel>().logout();
+        },
+        child: const Text(
+          "Logout the user",
+        ),
+      ),
+    ),
   ];
   List<Widget> get dashboardWidgets => _dashboardWidgets;
 
@@ -64,7 +76,6 @@ class DashboardViewModel extends ChangeNotifier {
   }
 
   void getTheBalance() {
-
     ///Here is the code for HTTP call
     // catalogFacadeService.getBalance();
 
@@ -72,7 +83,7 @@ class DashboardViewModel extends ChangeNotifier {
       _accountBalance = getStorage.read(PrefsKeys.accountBalance);
       notifyListeners();
     } else {
-      _accountBalance = 3000.67;
+      _accountBalance = 5000.67;
       getStorage.write(PrefsKeys.accountBalance, _accountBalance);
     }
     notifyListeners();
@@ -92,46 +103,59 @@ class DashboardViewModel extends ChangeNotifier {
   void setNewBalance(double newBalance) async {
     _isRecharging = true;
     notifyListeners();
-    await Future.delayed(const Duration(seconds: 3));
-    Beneficiary beneficiary = Provider.of<BeneficiaryViewModel>(
-            NavigationService.navigatorKey.currentContext!,
-            listen: false)
-        .selectedBeneficiary;
-    bool isAllowedForTransaction = Provider.of<BeneficiaryViewModel>(
-            NavigationService.navigatorKey.currentContext!,
-            listen: false)
-        .updateBeneficiaryData(beneficiary, newBalance);
-    if (newBalance > _accountBalance) {
+    try {
+      await Future.delayed(const Duration(seconds: 3));
+      Beneficiary beneficiary = Provider.of<BeneficiaryViewModel>(
+              NavigationService.navigatorKey.currentContext!,
+              listen: false)
+          .selectedBeneficiary;
+      bool isAllowedForTransaction = Provider.of<BeneficiaryViewModel>(
+              NavigationService.navigatorKey.currentContext!,
+              listen: false)
+          .updateBeneficiaryData(beneficiary, newBalance);
+      if (newBalance > _accountBalance) {
+        showToast(
+          message:
+              "You don't have sufficient balance to use this top-up option",
+          context: NavigationService.navigatorKey.currentContext!,
+        );
+      } else if (!isAllowedForTransaction) {
+        showToast(
+          message:
+              "${beneficiary.nickName} has already exceeded the monthly limit of AED 500",
+          context: NavigationService.navigatorKey.currentContext!,
+        );
+      } else if (_usedBalance >= 3000) {
+        showToast(
+          message:
+              "Sorry! You've reached the maximum monthly top-up limit of AED 3000",
+          context: NavigationService.navigatorKey.currentContext!,
+        );
+      } else {
+        _accountBalance = _accountBalance - newBalance;
+        _usedBalance = _usedBalance + newBalance;
+        getStorage.write(PrefsKeys.accountBalance, accountBalance);
+        getStorage.write(PrefsKeys.balanceUsed, _usedBalance);
+        _dashboardWidgetIndex = 0;
+        Navigator.pushNamedAndRemoveUntil(
+          NavigationService.navigatorKey.currentContext!,
+          DashboardScreen.routeName,
+          (Route<dynamic> route) => false,
+        );
+        showToast(
+          message:
+              "You've Recharged ${beneficiary.nickName} for AED ${(newBalance - 1).toStringAsFixed(2)}",
+          context: NavigationService.navigatorKey.currentContext!,
+        );
+      }
+    } on DioException catch (e) {
       showToast(
-        message: "You don't have sufficient balance to use this top-up option",
+        message: "Something went wrong!\n$e",
         context: NavigationService.navigatorKey.currentContext!,
       );
-    } else if (!isAllowedForTransaction) {
+    } catch (e) {
       showToast(
-        message:
-            "${beneficiary.nickName} has already exceeded the monthly limit of AED 500",
-        context: NavigationService.navigatorKey.currentContext!,
-      );
-    } else if (_usedBalance >= 3000) {
-      showToast(
-        message:
-            "Sorry! You've reached the maximum monthly top-up limit of AED 3000",
-        context: NavigationService.navigatorKey.currentContext!,
-      );
-    } else {
-      _accountBalance = _accountBalance - newBalance;
-      _usedBalance = _usedBalance + newBalance;
-      getStorage.write(PrefsKeys.accountBalance, accountBalance);
-      getStorage.write(PrefsKeys.balanceUsed, _usedBalance);
-      _dashboardWidgetIndex = 0;
-      Navigator.pushNamedAndRemoveUntil(
-        NavigationService.navigatorKey.currentContext!,
-        DashboardScreen.routeName,
-        (Route<dynamic> route) => false,
-      );
-      showToast(
-        message:
-            "You've Recharged ${beneficiary.nickName} for AED ${(newBalance - 1).toStringAsFixed(2)}",
+        message: "Something went wrong!\n$e",
         context: NavigationService.navigatorKey.currentContext!,
       );
     }

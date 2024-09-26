@@ -43,10 +43,12 @@ class ExpandableSelectionWidget extends StatelessWidget {
                         .where((beneficiary) =>
                             beneficiary.phone !=
                             beneficiaryViewModel.selectedBeneficiary.phone)
-                        .map((beneficiary) => BeneficiaryWidget(
-                              beneficiary: beneficiary,
-                              showTrailingButton: false,
-                            ))
+                        .map(
+                          (beneficiary) => BeneficiaryWidget(
+                            beneficiary: beneficiary,
+                            showTrailingButton: false,
+                          ),
+                        )
                         .toList(),
                   ),
                   const SizedBox(height: 20),

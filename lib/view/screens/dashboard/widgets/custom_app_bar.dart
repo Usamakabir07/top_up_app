@@ -7,6 +7,7 @@ PreferredSize customAppBar() {
   return PreferredSize(
     preferredSize: const Size(double.infinity, 70),
     child: AppBar(
+      centerTitle: false,
       title: Image.asset(
         AppImages.appLogo2,
         height: 60,

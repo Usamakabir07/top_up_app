@@ -22,6 +22,7 @@ class TopUpViewModel extends ChangeNotifier {
     30.00,
     50.00,
     100.00,
+    500.00,
   ];
   List<double> get topUpOptions => _topUpOptions;
 

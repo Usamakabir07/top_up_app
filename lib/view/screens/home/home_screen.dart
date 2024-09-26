@@ -99,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            const Divider(),
+            const Divider(thickness: 0.1),
             const SizedBox(
               height: 5,
             ),
@@ -132,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            const Divider(),
+            const Divider(thickness: 0.1),
             const SizedBox(
               height: 30,
             ),

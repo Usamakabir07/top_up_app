@@ -24,13 +24,7 @@ class BeneficiaryViewModel extends ChangeNotifier {
   bool _isRegisteringNewBeneficiary = false;
   bool get isRegisteringNewBeneficiary => _isRegisteringNewBeneficiary;
 
-  List<Beneficiary> _beneficiariesList = [
-    Beneficiary(
-      nickName: "Usama Kabir",
-      phone: "+971554774180",
-      balanceUsed: 0.0,
-    ),
-  ];
+  List<Beneficiary> _beneficiariesList = [];
   List<Beneficiary> get beneficiariesList => _beneficiariesList;
 
   Beneficiary _selectedBeneficiary = Beneficiary(
@@ -65,16 +59,19 @@ class BeneficiaryViewModel extends ChangeNotifier {
       );
 
       ///Here is the code for HTTP call
-      // catalogFacadeService.addBeneficiary(nickName: beneficiaryName, phoneNumber: phoneNumber);
+      // catalogFacadeService.addBeneficiary(
+      //     nickName: beneficiaryName, phoneNumber: phoneNumber);
+
       await Future.delayed(const Duration(seconds: 2));
-      if (_beneficiariesList
-          .any(((element) => element.phone != beneficiary.phone))) {
+      if (!_beneficiariesList
+          .any(((element) => element.phone == beneficiary.phone))) {
         _beneficiariesList.insert(0, beneficiary);
         showToast(
           message: "Beneficiary is added",
           context: NavigationService.navigatorKey.currentContext!,
         );
         getStorage.write(PrefsKeys.beneficiaries, _beneficiariesList);
+        _addNewBeneficiary = false;
       } else {
         showToast(
           message: "A beneficiary is already registered with this number",
@@ -83,10 +80,7 @@ class BeneficiaryViewModel extends ChangeNotifier {
       }
       notifyListeners();
     } on DioException catch (e) {
-      showToast(
-        message: "Something went wrong! \n$e",
-        context: NavigationService.navigatorKey.currentContext!,
-      );
+      handleDioError(e);
     } catch (e) {
       showToast(
         message: "Something went wrong! \n$e",
@@ -94,21 +88,23 @@ class BeneficiaryViewModel extends ChangeNotifier {
       );
     }
     _isRegisteringNewBeneficiary = false;
-    _addNewBeneficiary = false;
     notifyListeners();
   }
 
   void getTheBeneficiaries() {
     if (getStorage.hasData(PrefsKeys.beneficiaries)) {
       List<dynamic> beneficiaries = getStorage.read(PrefsKeys.beneficiaries);
-      List<Beneficiary> storedBeneficiaries =
-          beneficiaries.map((user) => Beneficiary.fromJson(user)).toList();
-      _beneficiariesList = storedBeneficiaries;
-    } else {
-      List<Map<String, dynamic>> beneficiaries = _beneficiariesList
-          .map((beneficiary) => beneficiary.toJson())
-          .toList();
-      getStorage.write(PrefsKeys.beneficiaries, beneficiaries);
+      if (beneficiaries.isNotEmpty) {
+        List<Beneficiary> storedBeneficiaries =
+            beneficiaries.map((user) => Beneficiary.fromJson(user)).toList();
+        _beneficiariesList = storedBeneficiaries;
+        notifyListeners();
+      } else {
+        // List<Map<String, dynamic>> beneficiaries = _beneficiariesList
+        //     .map((beneficiary) => beneficiary.toJson())
+        //     .toList();
+        getStorage.write(PrefsKeys.beneficiaries, _beneficiariesList);
+      }
     }
     notifyListeners();
   }
@@ -136,5 +132,44 @@ class BeneficiaryViewModel extends ChangeNotifier {
     }
     notifyListeners();
     return isAllowedForTransaction;
+  }
+
+  bool enableForTopUp(Beneficiary beneficiary) {
+    bool isAllowedForTransaction = false;
+    int index = _beneficiariesList.indexWhere(
+        (thisBeneficiary) => thisBeneficiary.phone == beneficiary.phone);
+    if (index != -1) {
+      if (_beneficiariesList[index].balanceUsed <= 505.00) {
+        isAllowedForTransaction = true;
+      } else {
+        isAllowedForTransaction = false;
+      }
+    }
+    notifyListeners();
+    return isAllowedForTransaction;
+  }
+
+  void removeBeneficiary({required String beneficiaryId}) {
+    try {
+      _beneficiariesList.removeWhere(
+        (beneficiary) => beneficiary.phone == beneficiaryId,
+      );
+      getStorage.write(PrefsKeys.beneficiaries, _beneficiariesList);
+      notifyListeners();
+      showToast(
+        message: "Beneficiary is removed successfully!",
+        context: NavigationService.navigatorKey.currentContext!,
+      );
+    } on DioException catch (e) {
+      showToast(
+        message: "Unable to remove the beneficiary\n$e",
+        context: NavigationService.navigatorKey.currentContext!,
+      );
+    } catch (e) {
+      showToast(
+        message: "Unable to remove the beneficiary\n$e",
+        context: NavigationService.navigatorKey.currentContext!,
+      );
+    }
   }
 }
