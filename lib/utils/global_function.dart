@@ -8,7 +8,7 @@ import 'navigation_service.dart';
 showToast({required String message, required BuildContext context}) {
   return Fluttertoast.showToast(
     msg: message,
-    toastLength: Toast.LENGTH_SHORT,
+    toastLength: Toast.LENGTH_LONG,
     gravity: ToastGravity.BOTTOM,
   );
 }
@@ -46,15 +46,7 @@ void handleDioError(DioException e) {
                     );
 }
 
-bool checkBalanceValidity() {
-  bool resetTheBalance = false;
+bool hasTheMonthChanged(DateTime timeStamp) {
   DateTime now = DateTime.now();
-  int currentMonth = now.month; // Current month
-  int currentYear = now.year;
-  if (now.month != currentMonth || now.year != currentYear) {
-    currentMonth = now.month;
-    currentYear = now.year;
-    resetTheBalance = true;
-  }
-  return resetTheBalance;
+  return now.year != timeStamp.year || now.month != timeStamp.month;
 }

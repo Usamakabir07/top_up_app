@@ -32,6 +32,7 @@ class RouteGenerator {
             nickName: "",
             phone: "",
             balanceUsed: 0.0,
+            timeOfTransaction: DateTime.timestamp(),
           ),
         );
         break;

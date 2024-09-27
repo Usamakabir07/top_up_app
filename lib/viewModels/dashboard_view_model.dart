@@ -12,6 +12,7 @@ import 'package:top_up_app/view/screens/dashboard/dashboard_screen.dart';
 import 'package:top_up_app/view/screens/home/home_screen.dart';
 import 'package:top_up_app/viewModels/auth_view_model.dart';
 import 'package:top_up_app/viewModels/beneficiary_view_model.dart';
+import 'package:top_up_app/viewModels/top_up_view_model.dart';
 
 import '../infrastructure/catalog_facade_service.dart';
 
@@ -137,6 +138,9 @@ class DashboardViewModel extends ChangeNotifier {
         getStorage.write(PrefsKeys.accountBalance, accountBalance);
         getStorage.write(PrefsKeys.balanceUsed, _usedBalance);
         _dashboardWidgetIndex = 0;
+        NavigationService.navigatorKey.currentContext!
+            .read<TopUpViewModel>()
+            .resetTheValues();
         Navigator.pushNamedAndRemoveUntil(
           NavigationService.navigatorKey.currentContext!,
           DashboardScreen.routeName,

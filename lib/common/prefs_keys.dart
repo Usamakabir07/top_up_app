@@ -6,4 +6,5 @@ class PrefsKeys {
   static const String isVerified = "is_verified";
   static const String status = "status";
   static const String message = "message";
+  static const String lastTransactionTime = "last_transaction_time";
 }

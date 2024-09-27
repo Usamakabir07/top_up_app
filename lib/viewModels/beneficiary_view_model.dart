@@ -31,6 +31,7 @@ class BeneficiaryViewModel extends ChangeNotifier {
     nickName: "",
     phone: "",
     balanceUsed: 0.0,
+    timeOfTransaction: DateTime.now(),
   );
   Beneficiary get selectedBeneficiary => _selectedBeneficiary;
 
@@ -56,6 +57,7 @@ class BeneficiaryViewModel extends ChangeNotifier {
         nickName: beneficiaryName,
         phone: countryCode + phoneNumber,
         balanceUsed: 0.0,
+        timeOfTransaction: DateTime.now(),
       );
 
       ///Here is the code for HTTP call
@@ -98,11 +100,19 @@ class BeneficiaryViewModel extends ChangeNotifier {
         List<Beneficiary> storedBeneficiaries =
             beneficiaries.map((user) => Beneficiary.fromJson(user)).toList();
         _beneficiariesList = storedBeneficiaries;
+        for (int i = 0; i < _beneficiariesList.length; i++) {
+          if (hasTheMonthChanged(_beneficiariesList[i].timeOfTransaction)) {
+            _beneficiariesList[i] = Beneficiary(
+              nickName: _beneficiariesList[i].nickName,
+              phone: _beneficiariesList[i].phone,
+              balanceUsed: 0.0,
+              timeOfTransaction: DateTime.now(),
+            );
+            getStorage.write(PrefsKeys.beneficiaries, _beneficiariesList);
+          }
+        }
         notifyListeners();
       } else {
-        // List<Map<String, dynamic>> beneficiaries = _beneficiariesList
-        //     .map((beneficiary) => beneficiary.toJson())
-        //     .toList();
         getStorage.write(PrefsKeys.beneficiaries, _beneficiariesList);
       }
     }
@@ -111,39 +121,32 @@ class BeneficiaryViewModel extends ChangeNotifier {
 
   bool updateBeneficiaryData(Beneficiary beneficiary, double balanceUsed) {
     bool isAllowedForTransaction = false;
-    Beneficiary updatedBeneficiary = Beneficiary(
-      nickName: beneficiary.nickName,
-      phone: beneficiary.phone,
-      balanceUsed: beneficiary.balanceUsed + balanceUsed,
-    );
-    int index = _beneficiariesList.indexWhere(
-        (beneficiary) => beneficiary.phone == updatedBeneficiary.phone);
-    if (index != -1) {
-      _beneficiariesList[index] = updatedBeneficiary;
-      if (_beneficiariesList[index].balanceUsed <= 505.00) {
-        List<Map<String, dynamic>> beneficiaries = _beneficiariesList
-            .map((beneficiary) => beneficiary.toJson())
-            .toList();
-        getStorage.write(PrefsKeys.beneficiaries, beneficiaries);
-        isAllowedForTransaction = true;
-      } else {
-        isAllowedForTransaction = false;
+    try {
+      Beneficiary updatedBeneficiary = Beneficiary(
+        nickName: beneficiary.nickName,
+        phone: beneficiary.phone,
+        balanceUsed: beneficiary.balanceUsed + balanceUsed,
+        timeOfTransaction: DateTime.now(),
+      );
+      int index = _beneficiariesList.indexWhere(
+          (beneficiary) => beneficiary.phone == updatedBeneficiary.phone);
+      if (index != -1) {
+        _beneficiariesList[index] = updatedBeneficiary;
+        if (_beneficiariesList[index].balanceUsed <= 505.00) {
+          List<Map<String, dynamic>> beneficiaries = _beneficiariesList
+              .map((beneficiary) => beneficiary.toJson())
+              .toList();
+          getStorage.write(PrefsKeys.beneficiaries, beneficiaries);
+          isAllowedForTransaction = true;
+        } else {
+          isAllowedForTransaction = false;
+        }
       }
-    }
-    notifyListeners();
-    return isAllowedForTransaction;
-  }
-
-  bool enableForTopUp(Beneficiary beneficiary) {
-    bool isAllowedForTransaction = false;
-    int index = _beneficiariesList.indexWhere(
-        (thisBeneficiary) => thisBeneficiary.phone == beneficiary.phone);
-    if (index != -1) {
-      if (_beneficiariesList[index].balanceUsed <= 505.00) {
-        isAllowedForTransaction = true;
-      } else {
-        isAllowedForTransaction = false;
-      }
+    } catch (e) {
+      showToast(
+        message: "$e",
+        context: NavigationService.navigatorKey.currentContext!,
+      );
     }
     notifyListeners();
     return isAllowedForTransaction;
